@@ -3,9 +3,18 @@ using System.Runtime.InteropServices;
 
 namespace ValheimServerScheduler.Process.Lifecycle;
 
-// Manages the lifecycle of a process with no GUI.
-internal class HiddenProcessLifecycleManager : IProcessLifecycleManager
+using Process = System.Diagnostics.Process;
+
+/// <summary>
+/// Handles the lifecycle of background processes.
+/// </summary>
+internal sealed class BackgroundLifecycleManager : IProcessLifecycleManager
 {
+    /// <summary>
+    /// Creates ProcessStartInfo for background processes based on the provided ProcessInfo.
+    /// </summary>
+    /// <param name="info">Details about the process to be started.</param>
+    /// <returns>ProcessStartInfo configured for background processes.</returns>
     public ProcessStartInfo CreateStartInfo(ProcessInfo info)
     {
         return new ProcessStartInfo
@@ -17,15 +26,27 @@ internal class HiddenProcessLifecycleManager : IProcessLifecycleManager
             WindowStyle = ProcessWindowStyle.Hidden
         };
     }
-
-    public void KillProcess(System.Diagnostics.Process process)
+    
+    /// <summary>
+    /// Attempts to gracefully terminate the specified background process by sending a CTRL+C event
+    /// </summary>
+    /// <param name="process">The process to be terminated.</param>
+    public void AttemptGracefulTermination(Process process)
     {
         ExitGracefully(process.Id);
+    }
+    
+    /// <summary>
+    /// Terminates the specified background process.
+    /// </summary>
+    /// <param name="process">The process to be terminated.</param>
+    public void KillProcess(Process process)
+    {
         process.Kill();
     }
 
-    // BUG: App unexpectedly closes shortly after the target process exits.
-    // Is our application responding to the cancel signal sent to the target process?
+    // BUG: App closes abruptly after the target process exits.
+    // Is the cancel signal affecting the app, or is it an uncaught native exception?
     private static void ExitGracefully(int processId)
     {
         if (AttachConsole((uint) processId))

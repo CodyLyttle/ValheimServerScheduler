@@ -1,97 +1,125 @@
 ﻿using System.Diagnostics;
 using ValheimServerScheduler.Process;
+using ValheimServerScheduler.Scheduler.Rules;
 
 namespace ValheimServerScheduler.Scheduler;
 
 internal sealed class ServerScheduler
 {
     private readonly ProcessManager _processManager;
-    private readonly Dictionary<DayOfWeek, List<SchedulerRule>> _rules;
 
-    // Estimates used for delay.
-    public TimeSpan EstimatedStartupTime { get; }
-    public TimeSpan EstimatedShutdownTime { get; }
+    private IRuleProvider _ruleProvider;
+    private Dictionary<DayOfWeek, IEnumerable<SchedulerRule>>? _ruleset;
 
-    public ServerScheduler(ProcessManager processManager, TimeSpan estimatedStartupTime, TimeSpan estimatedShutdownTime)
+    public IRuleProvider RuleProvider
     {
+        get => _ruleProvider;
+        set
+        {
+            if (value == _ruleProvider) return;
+            _ruleProvider = value;
+            _ruleset = null;
+        }
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerScheduler"/> class.
+    /// </summary>
+    /// <param name="ruleProvider">The rule provider to obtain the scheduler rules from.</param>
+    /// <param name="processManager">The process manager used to start, stop and restart the managed process.</param>
+    public ServerScheduler(IRuleProvider ruleProvider, ProcessManager processManager)
+    {
+        _ruleProvider = ruleProvider;
         _processManager = processManager;
-        EstimatedStartupTime = estimatedStartupTime;
-        EstimatedShutdownTime = estimatedShutdownTime;
-
-        // Initialize an empty list of rules for each day of the week.
-        _rules = new Dictionary<DayOfWeek, List<SchedulerRule>>();
-        foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)))
-        {
-            _rules[day] = new List<SchedulerRule>();
-        }
     }
 
-    public ServerScheduler AddRule(DayOfWeek day, SchedulerAction action, TimeSpan timeOfDay)
-        => AddRule(day, new SchedulerRule(action, timeOfDay));
-
-    public ServerScheduler AddRule(DayOfWeek day, SchedulerRule rule)
-    {
-        if (!Enum.IsDefined(typeof(DayOfWeek), day))
-        {
-            throw new ArgumentException("Invalid day of the week", nameof(day));
-        }
-
-        List<SchedulerRule> dayRules = _rules[day];
-        if (dayRules.Any(r => r.TimeOfDay == rule.TimeOfDay))
-        {
-            throw new ArgumentException($"A scheduling rule already exists for day {day} and time {rule.TimeOfDay}",
-                nameof(rule));
-        }
-
-        dayRules.Add(rule);
-        dayRules.Sort((ruleA, ruleB) => ruleA.TimeOfDay.CompareTo(ruleB.TimeOfDay));
-
-        return this;
-    }
-
-    public async Task Run()
+    /// <summary>
+    /// Runs the scheduler loop, executing scheduled actions based on the provided rules.
+    /// The loop runs indefinitely until the specified cancellation token is triggered.
+    /// </summary>
+    /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to cancel the loop execution.</param>
+    public async Task RunSchedulerLoop(CancellationToken cancellationToken = default)
     {
         DayOfWeek today = DateTime.Today.DayOfWeek;
-
-        // Begin with only the remaining rules for the day.
-        // Executing a series of overdue rules sequentially could result in unexpected behaviour.
-        Queue<SchedulerRule> remainingDailyRules = GetUpcomingDailyRules();
+        Queue<SchedulerRule> remainingDailyRules = new();
 
         while (true)
         {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
+            if (_ruleset == null || _ruleProvider.HasRuleSetChanged())
+            {
+                // Ignore overdue rules to prevent unexpected behaviour when executing rules in quick succession.
+                _ruleset = CreateRuleset();
+                remainingDailyRules = GetUpcomingDailyRules();
+            }
+
             if (today != DateTime.Today.DayOfWeek)
             {
                 today = DateTime.Today.DayOfWeek;
-                remainingDailyRules = GetAllDailyRules();
+                remainingDailyRules = GetDailyRules();
             }
 
             // Rule ready to execute.
             if (remainingDailyRules.TryPeek(out SchedulerRule nextRule)
                 && DateTime.Now.TimeOfDay.CompareTo(nextRule.TimeOfDay) >= 0)
             {
-                switch (nextRule.Action)
+                try
                 {
-                    case SchedulerAction.Start:
-                        await Start();
-                        break;
-                    case SchedulerAction.Stop:
-                        await Stop();
-                        break;
-                    case SchedulerAction.Restart:
-                        await Restart();
-                        break;
+                    switch (nextRule.Action)
+                    {
+                        case SchedulerAction.Start:
+                            await Start(cancellationToken);
+                            break;
+                        case SchedulerAction.Stop:
+                            await Stop(cancellationToken);
+                            break;
+                        case SchedulerAction.Restart:
+                            await Restart(cancellationToken);
+                            break;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
 
                 remainingDailyRules.Dequeue();
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(30));
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                break;
+            }
         }
+    }
+
+    private Dictionary<DayOfWeek, IEnumerable<SchedulerRule>> CreateRuleset()
+    {
+        Dictionary<DayOfWeek, IEnumerable<SchedulerRule>> ruleset = _ruleProvider.GetRules()
+            .OrderBy(x => x.TimeOfDay)
+            .GroupBy(x => x.DayOfWeek)
+            .ToDictionary(grp => grp.Key, grp => grp.AsEnumerable());
+
+        foreach (DayOfWeek dayOfWeek in Enum.GetValues(typeof(DayOfWeek)))
+        {
+            if (!ruleset.ContainsKey(dayOfWeek))
+            {
+                ruleset[dayOfWeek] = Enumerable.Empty<SchedulerRule>();
+            }
+        }
+
+        return ruleset;
     }
 
     private Queue<SchedulerRule> GetUpcomingDailyRules()
     {
-        Queue<SchedulerRule> dailyRules = GetAllDailyRules();
+        Queue<SchedulerRule> dailyRules = GetDailyRules();
 
         while (dailyRules.TryPeek(out SchedulerRule nextRule))
         {
@@ -109,32 +137,31 @@ internal sealed class ServerScheduler
         return dailyRules;
     }
 
-    private Queue<SchedulerRule> GetAllDailyRules()
+    private Queue<SchedulerRule> GetDailyRules()
     {
-        return new Queue<SchedulerRule>(_rules[DateTime.Today.DayOfWeek]);
+        Debug.Assert(_ruleset != null);
+        return new Queue<SchedulerRule>(_ruleset[DateTime.Today.DayOfWeek]);
     }
 
-    private async Task Start()
+    private async Task Start(CancellationToken cancellationToken = default)
     {
         Debug.WriteLine("+Start");
-        _processManager.Start();
-        await Task.Delay(EstimatedStartupTime);
+        await _processManager.Start(cancellationToken);
         Debug.WriteLine("-Start");
     }
 
-    private async Task Stop()
+    private async Task Stop(CancellationToken cancellationToken = default)
     {
         Debug.WriteLine("+Stop");
-        _processManager.KillSpawnedInstance();
-        await Task.Delay(EstimatedShutdownTime);
+        await _processManager.StopSpawnedInstance(cancellationToken);
         Debug.WriteLine("-Stop");
     }
 
-    private async Task Restart()
+    private async Task Restart(CancellationToken cancellationToken = default)
     {
         Debug.WriteLine("+Restart");
-        await Stop();
-        await Start();
+        await _processManager.StopSpawnedInstance(cancellationToken);
+        await _processManager.Start(cancellationToken);
         Debug.WriteLine("-Restart");
     }
 }
