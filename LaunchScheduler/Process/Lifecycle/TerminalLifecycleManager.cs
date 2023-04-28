@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
 
-namespace ValheimServerScheduler.Process.Lifecycle;
+namespace LaunchScheduler.Process.Lifecycle;
 
 using Process = System.Diagnostics.Process;
 
 /// <summary>
 /// Manages the lifecycle of terminal-based processes.
 /// </summary>
-internal sealed class TerminalLifecycleManager : IProcessLifecycleManager
+public sealed class TerminalLifecycleManager : IProcessLifecycleManager
 {
     /// <summary>
     /// Creates ProcessStartInfo for terminal-based processes based on the provided ProcessInfo.

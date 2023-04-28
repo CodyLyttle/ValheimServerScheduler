@@ -1,9 +1,9 @@
-﻿namespace ValheimServerScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Scheduler.Rules;
 
 /// <summary>
 /// An implementation of IRuleProvider that provides a set of rules for quickly testing the scheduler.
 /// </summary>
-internal class TestRuleProvider : IRuleProvider
+public class TestRuleProvider : IRuleProvider
 {
     public bool HasRuleSetChanged()
     {

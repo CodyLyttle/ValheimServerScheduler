@@ -1,9 +1,9 @@
-﻿namespace ValheimServerScheduler.Process;
+﻿namespace LaunchScheduler.Process;
 
 /// <summary>
 /// Represents the basic details of a process.
 /// </summary>
-internal sealed class ProcessInfo
+public sealed class ProcessInfo
 {
     /// <summary>
     /// Gets the name of the process.

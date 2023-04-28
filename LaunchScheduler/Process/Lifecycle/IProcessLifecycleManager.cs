@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 
-namespace ValheimServerScheduler.Process.Lifecycle;
+namespace LaunchScheduler.Process.Lifecycle;
 
 /// <summary>
 /// Defines a contract for managing the lifecycle of a process.
 /// </summary>
-internal interface IProcessLifecycleManager
+public interface IProcessLifecycleManager
 {
     /// <summary>
     /// Creates a ProcessStartInfo object from the provided ProcessInfo.

@@ -1,9 +1,9 @@
-﻿namespace ValheimServerScheduler.Scheduler;
+﻿namespace LaunchScheduler.Scheduler;
 
 /// <summary>
 /// Represents the available actions for a scheduler rule.
 /// </summary>
-internal enum SchedulerAction
+public enum SchedulerAction
 {
     /// <summary>
     /// Indicates that the scheduler should start a process.

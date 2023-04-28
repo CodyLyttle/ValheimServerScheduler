@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace ValheimServerScheduler.Process.Lifecycle;
+namespace LaunchScheduler.Process.Lifecycle;
 
 using Process = System.Diagnostics.Process;
 
 /// <summary>
 /// Handles the lifecycle of background processes.
 /// </summary>
-internal sealed class BackgroundLifecycleManager : IProcessLifecycleManager
+public sealed class BackgroundLifecycleManager : IProcessLifecycleManager
 {
     /// <summary>
     /// Creates ProcessStartInfo for background processes based on the provided ProcessInfo.

@@ -1,9 +1,9 @@
-﻿namespace ValheimServerScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Scheduler.Rules;
 
 /// <summary>
 /// Represents a scheduled action to be performed at a specific time and day of the week.
 /// </summary>
-internal readonly struct SchedulerRule
+public readonly struct SchedulerRule
 {
     /// <summary>
     /// Gets the action to be performed.

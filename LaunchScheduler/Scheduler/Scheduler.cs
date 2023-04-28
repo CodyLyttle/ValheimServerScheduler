@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
-using ValheimServerScheduler.Process;
-using ValheimServerScheduler.Scheduler.Rules;
+using LaunchScheduler.Process;
+using LaunchScheduler.Scheduler.Rules;
 
-namespace ValheimServerScheduler.Scheduler;
+namespace LaunchScheduler.Scheduler;
 
-internal sealed class ServerScheduler
+public sealed class Scheduler
 {
     private readonly ProcessManager _processManager;
 
@@ -23,11 +23,11 @@ internal sealed class ServerScheduler
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ServerScheduler"/> class.
+    /// Initializes a new instance of the <see cref="Scheduler"/> class.
     /// </summary>
     /// <param name="ruleProvider">The rule provider to obtain the scheduler rules from.</param>
     /// <param name="processManager">The process manager used to start, stop and restart the managed process.</param>
-    public ServerScheduler(IRuleProvider ruleProvider, ProcessManager processManager)
+    public Scheduler(IRuleProvider ruleProvider, ProcessManager processManager)
     {
         _ruleProvider = ruleProvider;
         _processManager = processManager;

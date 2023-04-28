@@ -1,9 +1,9 @@
-﻿namespace ValheimServerScheduler.Process;
+﻿namespace LaunchScheduler.Process;
 
 /// <summary>
 /// Represents a command line argument with a key.
 /// </summary>
-internal class Argument
+public class Argument
 {
     /// <summary>
     /// Gets the key of the argument.

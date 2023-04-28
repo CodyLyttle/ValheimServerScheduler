@@ -1,10 +1,10 @@
-﻿namespace ValheimServerScheduler.Process;
+﻿namespace LaunchScheduler.Process;
 
 /// <summary>
 /// Represents a command line argument with a key and a value.
 /// </summary>
 /// <typeparam name="TValue">The type of the value associated with the argument.</typeparam>
-internal class ArgumentPair<TValue> : Argument
+public class ArgumentPair<TValue> : Argument
 {
     /// <summary>
     /// Gets the value of the argument.

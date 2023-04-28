@@ -1,9 +1,9 @@
-﻿namespace ValheimServerScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Scheduler.Rules;
 
 /// <summary>
 /// Defines a contract for providing a set of scheduler rules.
 /// </summary>
-internal interface IRuleProvider
+public interface IRuleProvider
 {
     /// <summary>
     /// Determines if the set of scheduler rules has changed since the last time they were provided.

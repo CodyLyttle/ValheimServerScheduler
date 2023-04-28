@@ -1,15 +1,15 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using ValheimServerScheduler.Process.Lifecycle;
+using LaunchScheduler.Process.Lifecycle;
 
-namespace ValheimServerScheduler.Process;
+namespace LaunchScheduler.Process;
 
 using Process = System.Diagnostics.Process;
 
 /// <summary>
 /// Manages the lifecycle of a specific process, providing methods for starting, stopping, and determining it's state.
 /// </summary>
-internal sealed class ProcessManager : IDisposable
+public sealed class ProcessManager : IDisposable
 {
     private readonly ProcessInfo _processInfo;
     private readonly IProcessLifecycleManager _lifecycleManager;

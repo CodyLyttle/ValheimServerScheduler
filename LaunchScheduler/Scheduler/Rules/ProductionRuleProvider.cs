@@ -1,8 +1,8 @@
-﻿namespace ValheimServerScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Scheduler.Rules;
 
 
 // Hardcoded production values, to eventually be replaced by a file based provider.
-internal class ProductionRuleProvider : IRuleProvider
+public class ProductionRuleProvider : IRuleProvider
 {
     private static readonly TimeSpan WeekdayStartTime = DateTime.Parse("4 PM").TimeOfDay;
     private static readonly TimeSpan WeekdayStopTime = DateTime.Parse("11:59 PM").TimeOfDay;

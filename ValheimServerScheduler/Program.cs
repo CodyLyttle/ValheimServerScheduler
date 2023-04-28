@@ -1,13 +1,13 @@
-﻿using ValheimServerScheduler.Process;
-using ValheimServerScheduler.Process.Lifecycle;
-using ValheimServerScheduler.Scheduler;
-using ValheimServerScheduler.Scheduler.Rules;
+﻿using LaunchScheduler.Process;
+using LaunchScheduler.Process.Lifecycle;
+using LaunchScheduler.Scheduler;
+using LaunchScheduler.Scheduler.Rules;
 
 ProcessManager processManager = new(
     new ProcessInfo("valheim_server.exe", @"D:\Games\ValheimServer\server\StartServer.bat"),
     new TerminalLifecycleManager());
 
-ServerScheduler scheduler = new ServerScheduler(
+var scheduler = new Scheduler(
     new TestRuleProvider(), 
     processManager);
 
