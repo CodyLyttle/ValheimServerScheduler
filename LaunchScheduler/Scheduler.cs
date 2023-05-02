@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 using LaunchScheduler.Process;
-using LaunchScheduler.Scheduler.Rules;
+using LaunchScheduler.Rules;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
-namespace LaunchScheduler.Scheduler;
+namespace LaunchScheduler;
 
 public sealed class Scheduler
 {
@@ -10,7 +12,16 @@ public sealed class Scheduler
 
     private IRuleProvider _ruleProvider;
     private Dictionary<DayOfWeek, IEnumerable<SchedulerRule>>? _ruleset;
+    
+    /// <summary>
+    /// Gets or sets the <see cref="ILogger"/> used for logging events, warnings, and errors.
+    /// </summary>
+    public ILogger Logger { get; set; }
 
+    /// <summary>
+    /// Gets or sets the <see cref="IRuleProvider"/> that provides scheduling rules for the class.
+    /// When the <see cref="IRuleProvider"/> is changed, the scheduler rules are updated.
+    /// </summary>
     public IRuleProvider RuleProvider
     {
         get => _ruleProvider;
@@ -21,16 +32,23 @@ public sealed class Scheduler
             _ruleset = null;
         }
     }
+    
+    public Scheduler(IRuleProvider ruleProvider, ProcessManager processManager) 
+        : this(ruleProvider, processManager, NullLogger.Instance)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Scheduler"/> class.
     /// </summary>
     /// <param name="ruleProvider">The rule provider to obtain the scheduler rules from.</param>
     /// <param name="processManager">The process manager used to start, stop and restart the managed process.</param>
-    public Scheduler(IRuleProvider ruleProvider, ProcessManager processManager)
+    /// <param name="logger">The logger used for logging events, warnings, and errors.</param>
+    public Scheduler(IRuleProvider ruleProvider, ProcessManager processManager, ILogger logger)
     {
         _ruleProvider = ruleProvider;
         _processManager = processManager;
+        Logger = logger;
     }
 
     /// <summary>
@@ -145,23 +163,23 @@ public sealed class Scheduler
 
     private async Task Start(CancellationToken cancellationToken = default)
     {
-        Debug.WriteLine("+Start");
+        Logger.Log(LogLevel.Information, "Starting.");
         await _processManager.Start(cancellationToken);
-        Debug.WriteLine("-Start");
+        Logger.Log(LogLevel.Information, "Started.");
     }
 
     private async Task Stop(CancellationToken cancellationToken = default)
     {
-        Debug.WriteLine("+Stop");
+        Logger.Log(LogLevel.Information, "Stopping.");
         await _processManager.StopSpawnedInstance(cancellationToken);
-        Debug.WriteLine("-Stop");
+        Logger.Log(LogLevel.Information, "Stopped.");
     }
 
     private async Task Restart(CancellationToken cancellationToken = default)
     {
-        Debug.WriteLine("+Restart");
+        Logger.Log(LogLevel.Information, "Restarting.");
         await _processManager.StopSpawnedInstance(cancellationToken);
         await _processManager.Start(cancellationToken);
-        Debug.WriteLine("-Restart");
+        Logger.Log(LogLevel.Information, "Restarted.");
     }
 }

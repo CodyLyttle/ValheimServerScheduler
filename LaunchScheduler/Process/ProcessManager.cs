@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using LaunchScheduler.Process.Lifecycle;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace LaunchScheduler.Process;
 
@@ -15,26 +17,38 @@ public sealed class ProcessManager : IDisposable
     private readonly IProcessLifecycleManager _lifecycleManager;
 
     private Process? _spawnedInstance;
-
+    
     /// <summary>
-    /// Gets or sets the grace period for process startup.
+    /// Gets or sets the <see cref="ILogger"/> used for logging events, warnings, and errors.
+    /// </summary>
+    public ILogger Logger { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the grace period allowed for the process to complete its startup phase.
     /// </summary>
     public TimeSpan StartupGracePeriod { get; set; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// Gets or sets the grace period for process shutdown.
+    /// Gets or sets the grace period allowed for the process to complete its shutdown phase.
     /// </summary>
     public TimeSpan ShutdownGracePeriod { get; set; } = TimeSpan.FromSeconds(60);
-
+    
+    public ProcessManager(ProcessInfo processInfo, IProcessLifecycleManager lifecycleManager) 
+        : this(processInfo, lifecycleManager, NullLogger.Instance)
+    {
+    }
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessManager"/> class.
     /// </summary>
     /// <param name="processInfo">The details of the process to be managed.</param>
     /// <param name="lifecycleManager">The lifecycle manager for the process.</param>
-    public ProcessManager(ProcessInfo processInfo, IProcessLifecycleManager lifecycleManager)
+    /// <param name="logger">The logger used for logging events, warnings, and errors.</param>
+    public ProcessManager(ProcessInfo processInfo, IProcessLifecycleManager lifecycleManager, ILogger logger)
     {
         _processInfo = processInfo;
         _lifecycleManager = lifecycleManager;
+        Logger = logger;
     }
 
     /// <summary>
@@ -67,7 +81,7 @@ public sealed class ProcessManager : IDisposable
         }
         catch (TaskCanceledException)
         {
-            Debug.WriteLine("The startup grace period was cancelled.");
+            Logger.Log(LogLevel.Warning, "The startup grace period was cancelled.");
             throw;
         }
     }
@@ -98,7 +112,7 @@ public sealed class ProcessManager : IDisposable
         }
         catch (TaskCanceledException)
         {
-            Debug.WriteLine("The shutdown grace period was cancelled; forcefully killing the process before the grace period ended.");
+            Logger.Log(LogLevel.Warning, "The shutdown grace period was cancelled; forcefully killing the process before the grace period ended.");
             throw;
         }
         finally
@@ -133,7 +147,7 @@ public sealed class ProcessManager : IDisposable
         }
         catch (TaskCanceledException)
         {
-            Debug.WriteLine("The shutdown grace period was cancelled; forcefully killing the processes before the grace period ended.");
+            Logger.LogWarning("The shutdown grace period was cancelled; forcefully killing the processes before the grace period ended.");
             throw;
         }
         finally

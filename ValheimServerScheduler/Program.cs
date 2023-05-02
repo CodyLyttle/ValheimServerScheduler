@@ -1,7 +1,7 @@
-﻿using LaunchScheduler.Process;
+﻿using LaunchScheduler;
+using LaunchScheduler.Process;
 using LaunchScheduler.Process.Lifecycle;
-using LaunchScheduler.Scheduler;
-using LaunchScheduler.Scheduler.Rules;
+using LaunchScheduler.Rules;
 
 ProcessManager processManager = new(
     new ProcessInfo("valheim_server.exe", @"D:\Games\ValheimServer\server\StartServer.bat"),

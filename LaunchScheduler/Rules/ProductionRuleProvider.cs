@@ -1,4 +1,4 @@
-﻿namespace LaunchScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Rules;
 
 
 // Hardcoded production values, to eventually be replaced by a file based provider.

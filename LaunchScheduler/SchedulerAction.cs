@@ -1,4 +1,4 @@
-﻿namespace LaunchScheduler.Scheduler;
+﻿namespace LaunchScheduler;
 
 /// <summary>
 /// Represents the available actions for a scheduler rule.

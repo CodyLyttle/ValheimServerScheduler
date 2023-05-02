@@ -1,4 +1,4 @@
-﻿namespace LaunchScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Rules;
 
 /// <summary>
 /// An implementation of IRuleProvider that provides a set of rules for quickly testing the scheduler.

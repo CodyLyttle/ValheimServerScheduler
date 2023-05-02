@@ -1,4 +1,4 @@
-﻿namespace LaunchScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Rules;
 
 /// <summary>
 /// Defines a contract for providing a set of scheduler rules.

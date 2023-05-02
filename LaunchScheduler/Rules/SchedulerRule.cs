@@ -1,4 +1,4 @@
-﻿namespace LaunchScheduler.Scheduler.Rules;
+﻿namespace LaunchScheduler.Rules;
 
 /// <summary>
 /// Represents a scheduled action to be performed at a specific time and day of the week.
