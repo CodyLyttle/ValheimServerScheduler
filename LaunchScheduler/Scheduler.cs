@@ -8,8 +8,6 @@ namespace LaunchScheduler;
 
 public sealed class Scheduler
 {
-    private readonly ProcessManager _processManager;
-
     private IRuleProvider _ruleProvider;
     private Dictionary<DayOfWeek, IEnumerable<SchedulerRule>>? _ruleset;
     
@@ -52,7 +50,7 @@ public sealed class Scheduler
     public Scheduler(ProcessManager processManager, IRuleProvider ruleProvider, ILogger logger)
     {
         _ruleProvider = ruleProvider;
-        _processManager = processManager;
+        ProcessManager = processManager;
         Logger = logger;
     }
 
@@ -169,22 +167,22 @@ public sealed class Scheduler
     private async Task Start(CancellationToken cancellationToken = default)
     {
         Logger.Log(LogLevel.Information, "Starting.");
-        await _processManager.Start(cancellationToken);
+        await ProcessManager.Start(cancellationToken);
         Logger.Log(LogLevel.Information, "Started.");
     }
 
     private async Task Stop(CancellationToken cancellationToken = default)
     {
         Logger.Log(LogLevel.Information, "Stopping.");
-        await _processManager.StopSpawnedInstance(cancellationToken);
+        await ProcessManager.StopSpawnedInstance(cancellationToken);
         Logger.Log(LogLevel.Information, "Stopped.");
     }
 
     private async Task Restart(CancellationToken cancellationToken = default)
     {
         Logger.Log(LogLevel.Information, "Restarting.");
-        await _processManager.StopSpawnedInstance(cancellationToken);
-        await _processManager.Start(cancellationToken);
+        await ProcessManager.StopSpawnedInstance(cancellationToken);
+        await ProcessManager.Start(cancellationToken);
         Logger.Log(LogLevel.Information, "Restarted.");
     }
 }
