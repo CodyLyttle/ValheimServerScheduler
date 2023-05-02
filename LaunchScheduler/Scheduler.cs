@@ -19,6 +19,11 @@ public sealed class Scheduler
     public ILogger Logger { get; set; }
 
     /// <summary>
+    /// Gets the <see cref="ProcessManager"/> used by the scheduler to control the process lifecycle.
+    /// </summary>
+    public ProcessManager ProcessManager { get; }
+
+    /// <summary>
     /// Gets or sets the <see cref="IRuleProvider"/> that provides scheduling rules for the class.
     /// When the <see cref="IRuleProvider"/> is changed, the scheduler rules are updated.
     /// </summary>
@@ -34,7 +39,7 @@ public sealed class Scheduler
     }
     
     public Scheduler(IRuleProvider ruleProvider, ProcessManager processManager) 
-        : this(ruleProvider, processManager, NullLogger.Instance)
+        : this(processManager, ruleProvider, NullLogger.Instance)
     {
     }
 
@@ -44,7 +49,7 @@ public sealed class Scheduler
     /// <param name="ruleProvider">The rule provider to obtain the scheduler rules from.</param>
     /// <param name="processManager">The process manager used to start, stop and restart the managed process.</param>
     /// <param name="logger">The logger used for logging events, warnings, and errors.</param>
-    public Scheduler(IRuleProvider ruleProvider, ProcessManager processManager, ILogger logger)
+    public Scheduler(ProcessManager processManager, IRuleProvider ruleProvider, ILogger logger)
     {
         _ruleProvider = ruleProvider;
         _processManager = processManager;
